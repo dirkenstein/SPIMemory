@@ -165,6 +165,12 @@
      #if defined ENABLEZERODMA
        dma_init();
      #endif
+   #elif defined (__IMXRT1062__)
+     #ifdef SPI_HAS_TRANSACTION
+       _spi->beginTransaction(_settings);
+     #else
+        #error Teensy should have beginTransaction
+     #endif
    #else
      #if defined (ARDUINO_ARCH_AVR)
        //save current SPI settings
@@ -420,16 +426,13 @@
 
  // Polls the status register 1 until busy flag is cleared or timeout
  bool SPIFlash::_notBusy(uint32_t timeout) {
-   _delay_us(WINBOND_WRITE_DELAY);
    uint32_t _time = micros();
-
    do {
      _readStat1();
      if (!(stat1 & BUSY))
      {
        return true;
      }
-
    } while ((micros() - _time) < timeout);
    if (timeout <= (micros() - _time)) {
      _troubleshoot(CHIPBUSY);
@@ -437,6 +440,11 @@
    }
    return true;
  }
+
+ bool SPIFlash::busy(void) {
+        return (_readStat1() & BUSY);
+ }
+
 
  //Enables writing to chip by setting the WRITEENABLE bit
  bool SPIFlash::_writeEnable(bool _troubleshootEnable) {

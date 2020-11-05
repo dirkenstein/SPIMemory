@@ -31,6 +31,8 @@
 #if defined (ARDUINO_ARCH_AVR)
 SPIFlash::SPIFlash(uint8_t cs) {
   _SPIInUse = STDSPI;
+  _pageSize =0;
+  _chip.capacity = 0;
   csPin = cs;
   cs_mask = digitalPinToBitMask(csPin);
   pinMode(csPin, OUTPUT);
@@ -171,6 +173,11 @@ uint32_t SPIFlash::getMaxPage(void) {
 	return (_chip.capacity / _pageSize);
 }
 
+//Returns page size of chip
+uint16_t SPIFlash::getPageSize(void) {
+	return _pageSize;
+}
+
 //Returns the time taken to run a function. Must be called immediately after a function is run as the variable returned is overwritten each time a function from this library is called. Primarily used in the diagnostics sketch included in the library to track function time.
 //This function can only be called if #define RUNDIAGNOSTIC is uncommented in SPIFlash.h
 float SPIFlash::functionRunTime(void) {
@@ -306,6 +313,7 @@ bool  SPIFlash::readByteArray(uint32_t _addr, uint8_t *data_buffer, size_t buffe
   #ifdef RUNDIAGNOSTIC
     _spifuncruntime = micros();
   #endif
+  //Serial.printf("readByteArray Addr %d len %d fast %d\n", _addr, bufferSize, fastRead);
   if (!_prep(READDATA, _addr, bufferSize)) {
     return false;
   }
@@ -565,10 +573,11 @@ bool SPIFlash::writeChar(uint32_t _addr, int8_t data, bool errorCheck) {
 //    4. errorCheck --> Turned on by default. Checks for writing errors
 // WARNING: You can only write to previously erased memory locations (see datasheet).
 // Use the eraseSector()/eraseBlock32K/eraseBlock64K commands to first clear memory (write 0xFFs)
-bool SPIFlash::writeByteArray(uint32_t _addr, uint8_t *data_buffer, size_t bufferSize, bool errorCheck) {
+bool SPIFlash::writeByteArray(uint32_t _addr, const uint8_t *data_buffer, size_t bufferSize, bool errorCheck) {
   #ifdef RUNDIAGNOSTIC
     _spifuncruntime = micros();
   #endif
+  //Serial.printf("writeByteArray Addr %d len %d\n", _addr, bufferSize);
   if (!_prep(PAGEPROG, _addr, bufferSize)) {
     return false;
   }
@@ -1240,21 +1249,21 @@ bool SPIFlash::eraseSector(uint32_t _addr) {
   }
   _beginSPI(kb4Erase.opcode);   //The address is transferred as a part of this function
   _endSPI();
-
   if(!_notBusy(kb4Erase.time)) {
+    //Serial.println("timeout");
     return false;	//Datasheet says erasing a sector takes 400ms max
   }
   //_writeDisable();
   #ifdef RUNDIAGNOSTIC
     _spifuncruntime = micros() - _spifuncruntime;
   #endif
-
 	return true;
 }
 
 // Erases one 32k block.
 //  Takes an address as the argument and erases the block containing the address.
 bool SPIFlash::eraseBlock32K(uint32_t _addr) {
+  //Serial.printf("EraseBlock32K %d\n", _addr);
   if (!kb32Erase.supported) {
     _troubleshoot(UNSUPPORTEDFUNC);
     return false;
@@ -1282,6 +1291,7 @@ bool SPIFlash::eraseBlock32K(uint32_t _addr) {
 // Erases one 64k block.
 //  Takes an address as the argument and erases the block containing the address.
 bool SPIFlash::eraseBlock64K(uint32_t _addr) {
+  //Serial.printf("EraseBlock64K %d\n", _addr);
   if (!kb64Erase.supported) {
     _troubleshoot(UNSUPPORTEDFUNC);
     return false;
@@ -1314,12 +1324,10 @@ bool SPIFlash::eraseChip(void) {
     return false;
   }
 
-	_beginSPI(chipErase.opcode);
+  _beginSPI(chipErase.opcode);
   _endSPI();
 
-	while(_readStat1() & BUSY) {
-    //_delay_us(30000L);
-  }
+  while (!_notBusy());
   _endSPI();
 
   #ifdef RUNDIAGNOSTIC
@@ -1328,6 +1336,7 @@ bool SPIFlash::eraseChip(void) {
 	return true;
 
 }
+
 
 //Suspends current Block Erase/Sector Erase/Page Program. Does not suspend chipErase().
 //Page Program, Write Status Register, Erase instructions are not allowed.

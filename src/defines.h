@@ -42,13 +42,17 @@
    #define BEGIN_SPI SPI.begin();
 
  // Defines and variables specific to SAMD architecture
- #elif defined (ARDUINO_ARCH_SAMD) || defined(ARCH_STM32)|| defined(ARDUINO_ARCH_ESP32)
+ #elif defined (ARDUINO_ARCH_SAMD) || defined(ARCH_STM32)|| defined(ARDUINO_ARCH_ESP32) || defined (__IMXRT1062__)
    #define CHIP_SELECT   digitalWrite(csPin, LOW);
    #define CHIP_DESELECT digitalWrite(csPin, HIGH);
    #define xfer(n)   _spi->transfer(n)
    #define BEGIN_SPI _spi->begin();
-
  // Defines and variables not specific to any architecture
+ #elif defined (__IMXRT1062__)
+   #define CHIP_SELECT   digitalWriteFast(csPin, LOW);
+   #define CHIP_DESELECT digitalWriteFast(csPin, HIGH);
+   #define xfer(n)   _spi->transfer(n)
+   #define BEGIN_SPI _spi->begin();
  #else
    #define CHIP_SELECT   digitalWrite(csPin, LOW);
    #define CHIP_DESELECT digitalWrite(csPin, HIGH);
@@ -87,6 +91,7 @@
 #define CHIPERASE     0x60
 #define ALT_CHIPERASE 0xC7    // Some flash chips use a different chip erase command
 #define SUSPEND       0x75
+#define SPAN_SUSPEND  0x85
 #define ID            0x90
 #define RESUME        0x7A
 #define JEDECID       0x9F
@@ -191,7 +196,8 @@
 #if defined (ARDUINO_ARCH_ESP32)
 #define SPI_CLK       20000000        //Hz equivalent of 20MHz
 #else
-#define SPI_CLK       104000000       //Hz equivalent of 104MHz
+//#define SPI_CLK       104000000       //Hz equivalent of 104MHz
+#define SPI_CLK       50000000       //Hz equivalent of 104MHz
 #endif
 #define ENFASTREAD    0x01
 #define WRTEN         0x02
@@ -217,7 +223,7 @@
 #define BYTE          1L
 #define KiB           1024L
 #define MiB           KiB * KiB
-#define S             1000L
+#define __S__             1000L
 #define TIME_TO_PROGRAM(x) (_byteFirstPrgmTime + (_byteAddnlPrgmTime * (x - 1)) )
 
 #if defined (ARDUINO_ARCH_ESP8266)

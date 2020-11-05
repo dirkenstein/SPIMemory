@@ -58,12 +58,13 @@ public:
   uint16_t sizeofStr(String &inputStr);
   uint32_t getCapacity(void);
   uint32_t getMaxPage(void);
+  uint16_t getPageSize(void);
   float    functionRunTime(void);
   //-------------------------------- Write / Read Bytes ---------------------------------//
   bool     writeByte(uint32_t _addr, uint8_t data, bool errorCheck = true);
   uint8_t  readByte(uint32_t _addr, bool fastRead = false);
   //----------------------------- Write / Read Byte Arrays ------------------------------//
-  bool     writeByteArray(uint32_t _addr, uint8_t *data_buffer, size_t bufferSize, bool errorCheck = true);
+  bool     writeByteArray(uint32_t _addr, const uint8_t *data_buffer, size_t bufferSize, bool errorCheck = true);
   bool     readByteArray(uint32_t _addr, uint8_t *data_buffer, size_t bufferSize, bool fastRead = false);
   //-------------------------------- Write / Read Chars ---------------------------------//
   bool     writeChar(uint32_t _addr, int8_t data, bool errorCheck = true);
@@ -109,6 +110,7 @@ public:
   //uint32_t freeRAM(void);
 //#endif
   //------------------------------- Public variables ------------------------------------//
+  bool busy(void);
 
 private:
   //------------------------------- Private functions -----------------------------------//
@@ -215,14 +217,14 @@ private:
   uint32_t    _addressOverflow = false;
   uint32_t    _BasicParamTableAddr, _SectorMapParamTableAddr, _byteFirstPrgmTime, _byteAddnlPrgmTime, _pagePrgmTime;
   uint8_t     _uniqueID[8];
-  const uint8_t _capID[18]   =
-  {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x41, 0x42, 0x43, 0x4B, 0x00, 0x01, 0x13, 0x37};
+  const uint8_t _capID[20]   =
+  {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x41, 0x42, 0x43, 0x4B, 0x00, 0x01, 0x13, 0x37, 0x63, 0x31};
 
-  const uint32_t _memSize[18]  =
-  {KB(64), KB(128), KB(256), KB(512), MB(1), MB(2), MB(4), MB(8), MB(16), MB(32), MB(2), MB(4), MB(8), MB(8), KB(256), KB(512), MB(4), KB(512)};
+  const uint32_t _memSize[20]  =
+  {KB(64), KB(128), KB(256), KB(512), MB(1), MB(2), MB(4), MB(8), MB(16), MB(32), MB(2), MB(4), MB(8), MB(8), KB(256), KB(512), MB(4), KB(512), MB(16), MB(16)};
   // To understand the _memSize definitions check defines.h
 
-  const uint8_t _supportedManID[9] = {WINBOND_MANID, MICROCHIP_MANID, CYPRESS_MANID, ADESTO_MANID, MICRON_MANID, ON_MANID, GIGA_MANID, AMIC_MANID, MACRONIX_MANID};
+  const uint8_t _supportedManID[18] = {WINBOND_MANID, MICROCHIP_MANID, CYPRESS_MANID, ADESTO_MANID, MICRON_MANID, ON_MANID, GIGA_MANID, AMIC_MANID, MACRONIX_MANID};
 
   const uint8_t _altChipEraseReq[3] = {A25L512, M25P40, SST26};
 };

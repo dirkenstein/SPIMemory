@@ -336,7 +336,6 @@ bool SPIFlash::_getSFDPFlashParam(void) {
     // Else _chip.capacity is the value as read in bits.
 
     _chip.capacity = (_chip.capacity/8) + 1; // Since the value read in is in bits, convert it to bytes here (1 is added because the number of bits is zero based - i.e. if there are 8 bytes, then they are numbered 0 -> 7)
-
   // Get Erase Parameters if available
   _getSFDPEraseParam();
 
