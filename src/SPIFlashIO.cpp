@@ -256,7 +256,7 @@
 
  //Reads/Writes next int. Call 'n' times to read/write 'n' number of integers. Should be called after _beginSPI()
  uint16_t SPIFlash::_nextInt(uint16_t data) {
- #if defined (ARDUINO_ARCH_SAMD)
+ #if defined (ARDUINO_ARCH_SAMD) || defined (__IMXRT1062__)
    return _spi->transfer16(data);
  #else
    return SPI.transfer16(data);
@@ -279,6 +279,8 @@
        #else
          _spi->transfer(&data_buffer[0], size);
        #endif
+     #elif defined (_IMXRT1062__)
+         _spi->transfer(&data_buffer[0], size);
      #elif defined (ARDUINO_ARCH_AVR)
        SPI.transfer(&(*data_buffer), size);
      #else
@@ -298,6 +300,8 @@
        #else
          _spi->transfer(&data_buffer[0], size);
        #endif
+     #elif defined (_IMXRT1062__)
+         _spi->transfer(&data_buffer[0], size);
      #elif defined (ARDUINO_ARCH_AVR)
        SPI.transfer(&(*data_buffer), size);
      #else
@@ -319,7 +323,7 @@
    }
 
  #ifdef SPI_HAS_TRANSACTION
-   #if defined (ARDUINO_ARCH_SAMD)
+   #if defined (ARDUINO_ARCH_SAMD) || defined(__IMXRT1062__)
      _spi->endTransaction();
    #else
      SPI.endTransaction();
